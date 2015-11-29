@@ -99,11 +99,13 @@ class OnlineSVR:
         return minValues[flag], flag, minIndices[flag]
 
     def findVarLc1(self, H, gamma, q, i):
+        # weird hacks below
         Lc1 = np.nan
         if gamma.size < 2:
             g = gamma
         else:
             g = gamma[i]
+        # weird hacks above
 
         if  g <= 0:
             Lc1 = np.array(q*np.inf)
@@ -279,7 +281,7 @@ class OnlineSVR:
         # print('kernel X1',X1)
         # print('kernel X2',X2)
         # print('X1-X2',X1-X2)
-        distance = np.linalg.norm(X1-X2,axis=1)
+        distance = np.linalg.norm(X1-X2,axis=1) # I may have this wrong?
         # print('distance',distance)
         fx = np.array(np.exp(-self.kernelParam*distance**2))
         fx.shape = (fx.size,1)
@@ -445,6 +447,7 @@ class OnlineSVR:
         return Rnew
 
     def removeSampleFromR(self, sampleIndex):
+        # TODO: This function is definitely doing something very wrong. Ends up being wrong shape in computeBetaGamma
         print('Removing sample {0} from R matrix.'.format(sampleIndex))
         I = list(range(sampleIndex))
         I.extend(range(sampleIndex+1,self.R.shape[0]))
