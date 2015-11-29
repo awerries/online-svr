@@ -1,0 +1,6 @@
+The code in this folder was written by Francesco Parrella, and 
+I used it as a direct example to write the Python implementation.
+
+It is an attempt to directly recreate the code, while translating
+MATLAB-based code to Numpy. If someone doesn't seem right, that's
+probably because it isn't.
