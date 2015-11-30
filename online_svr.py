@@ -381,13 +381,13 @@ class OnlineSVR:
                 print('Moving sample {0} from support to remainder set.'.format(index))
                 self.remainderSetIndices.append(index)
                 self.supportSetIndices.pop(minIndex)
-                self.R = self.removeSampleFromR(index)
+                self.R = self.removeSampleFromR(minIndex)
             # move from support to error set
             elif np.abs(weightsValue) == self.C:
                 print('Moving sample {0} from support to error set.'.format(index))
                 self.errorSetIndices.append(index)
                 self.supportSetIndices.pop(minIndex)
-                self.R = self.removeSampleFromR(index)
+                self.R = self.removeSampleFromR(minIndex)
             else:
                 print('Issue with set swapping, flag 2.','weightsValue:',weightsValue)
                 sys.exit()
@@ -449,8 +449,8 @@ class OnlineSVR:
     def removeSampleFromR(self, sampleIndex):
         # TODO: This function is definitely doing something very wrong. Ends up being wrong shape in computeBetaGamma
         print('Removing sample {0} from R matrix.'.format(sampleIndex))
-        I = list(range(sampleIndex))
-        I.extend(range(sampleIndex+1,self.R.shape[0]))
+        I = list(range(sampleIndex+1))
+        I.extend(range(sampleIndex+2,self.R.shape[0]))
 
         # Adjust R
         if self.R[sampleIndex+1,sampleIndex+1] != 0:
