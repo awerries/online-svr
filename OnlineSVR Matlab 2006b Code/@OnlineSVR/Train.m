@@ -39,13 +39,13 @@ function [SVR, Flops] = Train (SVR, NewSamplesX, NewSamplesY)
         ShowMessage(SVR, ['Training ' num2str(i) '/' num2str(SamplesNumber)], 1); 
         [SVR, CurrentFlops] = Learn(SVR, NewSamplesX(i,:), NewSamplesY(i));  
         Flops = Flops + CurrentFlops;
-        Iterations(i) = Flops;
+        %Iterations(i) = Flops;
         % Show the plot
         if (SVR.MakeVideo>0)
             SVR = BuildPlot(SVR);
         end
     end
-    save 'Iterations.txt' 'Iterations' -ASCII -DOUBLE -TABS;
+    %save 'Iterations.txt' 'Iterations' -ASCII -DOUBLE -TABS;
 
     % Stabilized Learning
     if (SVR.StabilizedLearning)
