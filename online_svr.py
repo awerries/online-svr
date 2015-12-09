@@ -97,7 +97,8 @@ class OnlineSVR:
             print('No weights to modify! Something is wrong.')
             sys.exit()
         flag = np.abs(minValues).argmin()
-        print('MinValues',minValues)
+        if self.debug:
+            print('MinValues',minValues)
         return minValues[flag], flag, minIndices[flag]
 
     def findVarLc1(self, H, gamma, q, i):
@@ -506,8 +507,9 @@ class OnlineSVR:
 
         # correctly classified sample, skip the rest of the algorithm!
         if (abs(H[i]) <= self.eps):
-            print('Correctly classified, adding to remainder.')
-            print('weights',self.weights)
+            print('Adding new sample {0} to remainder set, within eps.'.format(i))
+            if self.debug:
+                print('weights',self.weights)
             self.remainderSetIndices.append(i)
             return
 
