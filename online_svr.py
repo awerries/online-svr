@@ -19,7 +19,6 @@ def sign(x):
         return -1
 
 class OnlineSVR:
-    #TODO: convert lists to numpy arrays, enforce shapes?
     def __init__(self, C, eps, kernelParam, bias = 0, debug = False):
         # Configurable Parameters
         self.C = C
@@ -307,7 +306,6 @@ class OnlineSVR:
         return y
     
     def predict(self, newSampleX):
-        # TODO: ensure this works for multiple newSamples, required for computeMargin()
         X = np.array(self.X)
         newX = np.array(newSampleX)
         weights = np.array(self.weights)
@@ -473,7 +471,6 @@ class OnlineSVR:
         return Rnew
 
     def removeSampleFromR(self, sampleIndex):
-        # TODO: This function is definitely doing something very wrong. Ends up being wrong shape in computeBetaGamma
         print('Removing sample {0} from R matrix.'.format(sampleIndex))
         sampleIndex += 1
         I = list(range(sampleIndex))
