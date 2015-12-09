@@ -20,12 +20,13 @@ def sign(x):
 
 class OnlineSVR:
     #TODO: convert lists to numpy arrays, enforce shapes?
-    def __init__(self, C, eps, kernelParam, bias = 0):
+    def __init__(self, C, eps, kernelParam, bias = 0, debug = False):
         # Configurable Parameters
         self.C = C
         self.eps = eps
         self.kernelParam = kernelParam
         self.bias = bias
+        self.debug = debug
         
         # Algorithm initialization
         self.numSamplesTrained = 0
@@ -96,6 +97,7 @@ class OnlineSVR:
             print('No weights to modify! Something is wrong.')
             sys.exit()
         flag = np.abs(minValues).argmin()
+        print('MinValues',minValues)
         return minValues[flag], flag, minIndices[flag]
 
     def findVarLc1(self, H, gamma, q, i):
@@ -277,31 +279,49 @@ class OnlineSVR:
     def computeKernelOutput(self, set1, set2):
         """Compute kernel output. Uses a radial basis function kernel."""
         X1 = np.matrix(set1)
-        X2 = np.matrix(set2)
-        # print('kernel X1',X1)
-        # print('kernel X2',X2)
-        # print('X1-X2',X1-X2)
-        distance = np.linalg.norm(X1-X2,axis=1) # I may have this wrong?
-        # print('distance',distance)
-        fx = np.array(np.exp(-self.kernelParam*distance**2))
-        fx.shape = (fx.size,1)
-        return fx
+        X2 = np.matrix(set2).T
+        # Euclidean distance calculation done properly
+        [S,R] = X1.shape
+        [R2,Q] = X2.shape
+        X = np.zeros([S,Q])
+        if Q < S:
+            copies = np.zeros(S,dtype=int)
+            for q in range(Q):
+                if self.debug:
+                    print('X1',X1)
+                    print('X2copies',X2.T[q+copies,:])
+                    print('power',np.power(X1-X2.T[q+copies,:],2))
+                xsum = np.sum(np.power(X1-X2.T[q+copies,:],2),axis=1)
+                xsum.shape = (xsum.size,)
+                X[:,q] = xsum
+        else:
+            copies = np.zeros(Q,dtype=int)
+            for i in range(S):
+                X[i,:] = np.sum(np.power(X1.T[:,i+copies]-X2,2),axis=0)
+        X = np.sqrt(X)
+        y = np.matrix(np.exp(-self.kernelParam*X**2))
+        if self.debug:
+            print('distance',X)
+            print('kernelOutput',y)
+        return y
     
     def predict(self, newSampleX):
         # TODO: ensure this works for multiple newSamples, required for computeMargin()
-        weights = np.array(self.weights)
-        weights.shape = (len(weights),1)
         X = np.array(self.X)
         newX = np.array(newSampleX)
-
+        weights = np.array(self.weights)
+        weights.shape = (weights.size,1)
         if self.numSamplesTrained > 0:
-            fx = self.computeKernelOutput(X, newX)
-            return (weights.T @ fx).T + self.bias
+            y = self.computeKernelOutput(X, newX)
+            return (self.weights.T @ y).T + self.bias
         else:
             return np.zeros_like(newX) + self.bias
 
     def computeMargin(self, newSampleX, newSampleY):
         fx = self.predict(newSampleX)
+        if self.debug:
+            print('fx',fx)
+            print('hx',fx-newSampleY)
         return fx-newSampleY
 
     def computeBetaGamma(self,i):
@@ -333,6 +353,10 @@ class OnlineSVR:
         if gamma.size>1:
             # gamma = np.array([val if not np.isnan(val) else 0 for val in gamma])
             gamma.shape = (len(gamma),1)
+        if self.debug:
+            print('R',self.R)
+            print('beta',beta)
+            print('gamma',gamma)
         return beta, gamma
 
     def computeQ(self, set1, set2):
@@ -368,26 +392,27 @@ class OnlineSVR:
             weightsValue = self.weights[index]
             if np.abs(weightsValue) < np.abs(self.C - abs(weightsValue)):
                 self.weights[index] = 0
+                weightsValue = 0
             else:
                 self.weights[index] = np.sign(weightsValue)*self.C
                 weightsValue = self.weights[index]
-            # Floating point hack?
-            if np.abs(weightsValue) < 1e-15:
-                weightsValue = 0
-                self.weights[index] = 0
+            ## Floating point hack?
+            #if np.abs(weightsValue) < 1e-15:
+            #    weightsValue = 0
+            #    self.weights[index] = 0
 
             # Move from support to remainder set
             if weightsValue == 0:
                 print('Moving sample {0} from support to remainder set.'.format(index))
                 self.remainderSetIndices.append(index)
-                self.supportSetIndices.pop(minIndex)
                 self.R = self.removeSampleFromR(minIndex)
+                self.supportSetIndices.pop(minIndex)
             # move from support to error set
             elif np.abs(weightsValue) == self.C:
                 print('Moving sample {0} from support to error set.'.format(index))
                 self.errorSetIndices.append(index)
-                self.supportSetIndices.pop(minIndex)
                 self.R = self.removeSampleFromR(minIndex)
+                self.supportSetIndices.pop(minIndex)
             else:
                 print('Issue with set swapping, flag 2.','weightsValue:',weightsValue)
                 sys.exit()
@@ -449,14 +474,19 @@ class OnlineSVR:
     def removeSampleFromR(self, sampleIndex):
         # TODO: This function is definitely doing something very wrong. Ends up being wrong shape in computeBetaGamma
         print('Removing sample {0} from R matrix.'.format(sampleIndex))
-        I = list(range(sampleIndex+1))
-        I.extend(range(sampleIndex+2,self.R.shape[0]))
-
+        sampleIndex += 1
+        I = list(range(sampleIndex))
+        I.extend(range(sampleIndex+1,self.R.shape[0]))
+        I = np.array(I)
+        I.shape = (1,I.size)
+        if self.debug:
+            print('I',I)
+            print('RII',self.R[I.T,I])
         # Adjust R
-        if self.R[sampleIndex+1,sampleIndex+1] != 0:
-            Rnew = self.R[I,I] - self.R[I,sampleIndex+1]*self.R[sampleIndex+1,I] / self.R[sampleIndex+1,sampleIndex+1].item()
+        if self.R[sampleIndex,sampleIndex] != 0:
+            Rnew = self.R[I.T,I] - (self.R[I.T,sampleIndex]*self.R[sampleIndex,I]) / self.R[sampleIndex,sampleIndex].item()
         else:
-            Rnew = np.copy(self.R[sampleIndex,sampleIndex])
+            Rnew = np.copy(self.R[I.T,I])
         # Check for bad things
         if np.any(np.isnan(Rnew)):
             print('R has become inconsistent. Training failed removing sampleIndex {0}'.format(sampleIndex))
@@ -476,6 +506,8 @@ class OnlineSVR:
 
         # correctly classified sample, skip the rest of the algorithm!
         if (abs(H[i]) <= self.eps):
+            print('Correctly classified, adding to remainder.')
+            print('weights',self.weights)
             self.remainderSetIndices.append(i)
             return
 
@@ -507,21 +539,26 @@ class OnlineSVR:
                 H += deltaC
             # Adjust sets, moving samples between them according to flag
             H,newSampleAdded = self.adjustSets(H, beta, gamma, i, flag, minIndex)
+        if self.debug:
+            print('weights',self.weights)
 
 def main(argv):
     # Test of Online SVR algorithm
-    OSVR = OnlineSVR(C = 10, eps = 0.1, kernelParam = 30)
+    debug = True if len(argv)>1 and argv[1] == 'debug' else False
+    OSVR = OnlineSVR(C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = debug)
+
+    #testSetX = np.array([[0.1],[0.2],[0.3],[0.4],[0.5]])
     testSetX = np.random.rand(100,1)
     testSetY = np.sin(2*np.pi*testSetX)
-    for i in range(100):
-        print('Data point {0}'.format(i))
-        OSVR.learn(testSetX[i], testSetY[i])
+    for i in range(testSetX.shape[0]):
+        print('%%%%%%%%%%%%%%% Data point {0} %%%%%%%%%%%%%%%'.format(i))
+        OSVR.learn(testSetX[i,:], testSetY[i,:])
     # Predict stuff as quick test
-    testX = np.array([0,1])
+    testX = np.array([[0.15],[0.25]])
     testY = np.sin(2*np.pi*testX)
     print('testX:',testX)
     print('testY:',testY)
-    PredictedY = OSVR.predict(testX[0])
+    PredictedY = OSVR.predict(np.array([testX[0,0]]))
     Error = OSVR.computeMargin(testX[0],testY[0])
     print('PredictedY:',PredictedY)
     print('Error:',Error)
