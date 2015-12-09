@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""Implementation of Online Support Vector Regression (OSVR) for a class project in 16-831 Statistical Techniques in
-robotics.
+"""Implementation of Online Support Vector Regression (OSVR) for a class project in 16-831 
+Statistical Techniques in Robotics.
 
-Author: Adam Werries, awerries@cmu.edu
+Author: Adam Werries, awerries@cmu.edu, 12/2015.
 Adapted from MATLAB code available at http://onlinesvr.altervista.org/
 
-Assumes a Radial Basis Function as a kernel. Currently meant for use with predicting traffic cluster sizes.
-Note that this code utilizes the new '@' operator introduced in Python 3.5 for matrix multiplication."""
+Assumes a Radial Basis Function as a kernel. Note that this code utilizes the new '@' operator introduced 
+in Python 3.5 for matrix multiplication."""
 
 import sys
 import numpy as np
@@ -331,9 +331,6 @@ class OnlineSVR:
         if len(self.supportSetIndices) == 0 or self.R.size == 0:
             beta = np.array([])
         else:
-            # print('len(supportSetIndices)',len(self.supportSetIndices))
-            # print('Qsi',Qsi)
-            # print('X[i,:]',X[i,:])
             beta = -self.R @ np.append(np.matrix([1]),Qsi,axis=0)
         # Compute gamma vector
         Qxi = self.computeQ(X, X[i,:])
@@ -395,11 +392,6 @@ class OnlineSVR:
             else:
                 self.weights[index] = np.sign(weightsValue)*self.C
                 weightsValue = self.weights[index]
-            ## Floating point hack?
-            #if np.abs(weightsValue) < 1e-15:
-            #    weightsValue = 0
-            #    self.weights[index] = 0
-
             # Move from support to remainder set
             if weightsValue == 0:
                 print('Moving sample {0} from support to remainder set.'.format(index))
@@ -545,7 +537,6 @@ def main(argv):
     # Test of Online SVR algorithm
     debug = True if len(argv)>1 and argv[1] == 'debug' else False
     OSVR = OnlineSVR(C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = debug)
-
     #testSetX = np.array([[0.1],[0.2],[0.3],[0.4],[0.5]])
     testSetX = np.random.rand(100,1)
     testSetY = np.sin(2*np.pi*testSetX)
