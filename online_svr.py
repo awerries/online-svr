@@ -19,8 +19,9 @@ def sign(x):
         return -1
 
 class OnlineSVR:
-    def __init__(self, C, eps, kernelParam, bias = 0, debug = False):
+    def __init__(self, numFeatures, C, eps, kernelParam, bias = 0, debug = False):
         # Configurable Parameters
+        self.numFeatures = numFeatures
         self.C = C
         self.eps = eps
         self.kernelParam = kernelParam
@@ -106,7 +107,7 @@ class OnlineSVR:
         if gamma.size < 2:
             g = gamma
         else:
-            g = gamma[i]
+            g = gamma.item(i)
         # weird hacks above
 
         if  g <= 0:
@@ -312,14 +313,17 @@ class OnlineSVR:
         weights.shape = (weights.size,1)
         if self.numSamplesTrained > 0:
             y = self.computeKernelOutput(X, newX)
-            return (self.weights.T @ y).T + self.bias
+            return (weights.T @ y).T + self.bias
         else:
             return np.zeros_like(newX) + self.bias
 
     def computeMargin(self, newSampleX, newSampleY):
         fx = self.predict(newSampleX)
+        newSampleY = np.array(newSampleY)
+        newSampleY.shape = (newSampleY.size, 1)
         if self.debug:
             print('fx',fx)
+            print('newSampleY',newSampleY)
             print('hx',fx-newSampleY)
         return fx-newSampleY
 
@@ -343,12 +347,13 @@ class OnlineSVR:
         # Correct for NaN
         beta[np.isnan(beta)] = 0
         gamma[np.isnan(gamma)] = 0
-        if beta.size>1:
-            # beta = np.array([val if not np.isnan(val) else 0 for val in beta])
-            beta.shape = (len(beta),1)
-        if gamma.size>1:
-            # gamma = np.array([val if not np.isnan(val) else 0 for val in gamma])
-            gamma.shape = (len(gamma),1)
+        # if beta.size>1:
+            # # beta = np.array([val if not np.isnan(val) else 0 for val in beta])
+            # beta.shape = (len(beta),1)
+        # if gamma.size>1:
+            # # gamma = np.array([val if not np.isnan(val) else 0 for val in gamma])
+            # print(gamma)
+            # gamma.shape = (len(gamma),1)
         if self.debug:
             print('R',self.R)
             print('beta',beta)
@@ -356,9 +361,9 @@ class OnlineSVR:
         return beta, gamma
 
     def computeQ(self, set1, set2):
-        Q = np.matrix(np.zeros([set1.shape[0],set2.shape[0]]))
         set1 = np.matrix(set1)
         set2 = np.matrix(set2)
+        Q = np.matrix(np.zeros([set1.shape[0],set2.shape[0]]))
         for i in range(set1.shape[0]):
             for j in range(set2.shape[0]):
                 Q[i,j] = self.computeKernelOutput(set1[i,:],set2[j,:])
@@ -429,7 +434,7 @@ class OnlineSVR:
         print('Adding sample {0} to R matrix.'.format(sampleIndex))
         X = np.array(self.X)
         sampleX = X[sampleIndex,:]
-        sampleX.shape = (len(sampleX),1)
+        sampleX.shape = (sampleX.size/self.numFeatures,self.numFeatures)
         # Add first element
         if self.R.shape[0] <= 1:
             Rnew = np.ones([2,2])
@@ -536,19 +541,19 @@ class OnlineSVR:
 def main(argv):
     # Test of Online SVR algorithm
     debug = True if len(argv)>1 and argv[1] == 'debug' else False
-    OSVR = OnlineSVR(C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = debug)
+    OSVR = OnlineSVR(numFeatures = 2, C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = debug)
     #testSetX = np.array([[0.1],[0.2],[0.3],[0.4],[0.5]])
-    testSetX = np.random.rand(100,1)
-    testSetY = np.sin(2*np.pi*testSetX)
+    testSetX = np.random.rand(10,2)
+    testSetY = np.sin(2*np.pi*testSetX[:,0] + testSetX[:,1])
     for i in range(testSetX.shape[0]):
         print('%%%%%%%%%%%%%%% Data point {0} %%%%%%%%%%%%%%%'.format(i))
-        OSVR.learn(testSetX[i,:], testSetY[i,:])
+        OSVR.learn(testSetX[i,:], testSetY[i])
     # Predict stuff as quick test
-    testX = np.array([[0.15],[0.25]])
+    testX = np.array([[0.15,0.1],[0.25,0.2]])
     testY = np.sin(2*np.pi*testX)
     print('testX:',testX)
     print('testY:',testY)
-    PredictedY = OSVR.predict(np.array([testX[0,0]]))
+    PredictedY = OSVR.predict(np.array([testX[0,:]]))
     Error = OSVR.computeMargin(testX[0],testY[0])
     print('PredictedY:',PredictedY)
     print('Error:',Error)
