@@ -3,7 +3,7 @@ load('traffic_data.mat')
 y1_avg = avg_arrival_rate(x1,y1);%preprocessing
 epsilon = 0.01;
 start = 312;
-sample_time = 10;%unit: second
+sample_time = 30;%unit: second
 
 time = size(y1_avg,1);
 data_size = floor((time-start)/sample_time);
@@ -33,7 +33,7 @@ for i = 1:online_size
     weights = weights + sign(ActualY(i) - PredictedY(i)) * Loss(i) * OnlineSetX /sum((OnlineSetX).^2) ;  
 end
 
-fileID = fopen('test.txt','w');
+fileID = fopen('test2.txt','w');
 for i = 1:online_size
     g=sprintf('%f ', ActualX(i,:));
     formatSpec = '%f, %s\n';
