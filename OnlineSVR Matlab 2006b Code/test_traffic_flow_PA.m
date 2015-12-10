@@ -14,8 +14,8 @@ end
 
 
 window_size = 10*60/sample_time;%unit: sample_time
-horizon = 20*60/sample_time;%unit: sample_time
-online_size = data_size - horizon - window_size + 1;%unit: sample_time
+horizon = 3*60/sample_time;%unit: sample_time
+online_size = data_size - window_size + 1;%unit: sample_time
 
 PredictedY = zeros(1,online_size);
 ActualY = zeros(1,online_size);
@@ -24,13 +24,16 @@ Loss = zeros(1,online_size);
 weights = zeros(1,window_size);
 
 for i = 1:online_size
-    OnlineSetX = series(i:i+window_size-1);%y1_avg(start+(i-1)*sample_time+1:sample_time:start+(i-1+window_size)*sample_time)';
+    OnlineSetX = series(i:i+window_size-1);
     ActualX(i,:) = OnlineSetX;
     PredictedY(i) = weights * OnlineSetX';
-    OnlineSetY = mean(series(i+window_size:i+window_size+horizon-1));%mean(y1_avg(start+(i-1+window_size)*sample_time+1:start+(i-1+window_size)*sample_time+horizon)); %y1_avg(start+start_size+i+window_size+1);
-    ActualY(i) = OnlineSetY;
-    Loss(i) = pa_loss(weights,OnlineSetX, OnlineSetY, epsilon);
-    weights = weights + sign(ActualY(i) - PredictedY(i)) * Loss(i) * OnlineSetX /sum((OnlineSetX).^2) ;  
+    
+    if(i-horizon >= 1)
+        OnlineSetY = mean(series(i+window_size-horizon-1:i+window_size-1));
+        ActualY(i-horizon) = OnlineSetY;
+        Loss(i-horizon) = pa_loss(weights,ActualX(i-horizon,:), OnlineSetY, epsilon);
+        weights = weights + sign(ActualY(i-horizon) - PredictedY(i-horizon)) * Loss(i-horizon) * ActualX(i-horizon,:) /sum((ActualX(i-horizon,:)).^2) ;
+    end
 end
 
 fileID = fopen('test2.txt','w');
