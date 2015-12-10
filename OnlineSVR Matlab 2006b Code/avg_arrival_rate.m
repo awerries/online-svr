@@ -5,7 +5,7 @@ b = (1/windowSize)*ones(1,windowSize);
 a = 1;
 output = filter(b,a,y);
 
-figure;
-plot(x,output);
-grid on;
+%figure;
+%plot(x,output);
+%grid on;
 

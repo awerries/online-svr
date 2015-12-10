@@ -13,7 +13,7 @@ for i = 1:data_size
 end
 
 
-window_size = 10*60/sample_time;%unit: sample_time
+window_size = 20*60/sample_time;%unit: sample_time
 horizon = 3*60/sample_time;%unit: sample_time
 online_size = data_size - window_size + 1;%unit: sample_time
 
@@ -32,7 +32,8 @@ for i = 1:online_size
         OnlineSetY = mean(series(i+window_size-horizon-1:i+window_size-1));
         ActualY(i-horizon) = OnlineSetY;
         Loss(i-horizon) = pa_loss(weights,ActualX(i-horizon,:), OnlineSetY, epsilon);
-        weights = weights + sign(ActualY(i-horizon) - PredictedY(i-horizon)) * Loss(i-horizon) * ActualX(i-horizon,:) /sum((ActualX(i-horizon,:)).^2) ;
+        tau = Loss(i-horizon)/(sum((ActualX(i-horizon,:)).^2));
+        weights = weights + sign(ActualY(i-horizon) - PredictedY(i-horizon)) * ActualX(i-horizon,:) * tau ;
     end
 end
 
