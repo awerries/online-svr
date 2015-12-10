@@ -1,7 +1,9 @@
 import service
 import logging
+import sys
 
 class Receiver(service.receiver):
+
   def handler(self,msg):
     data = msg.strip().split('\n')
     for datum in data:
@@ -14,29 +16,32 @@ class Receiver(service.receiver):
 
         #check for relevant observations to send to the learner
         if (msg_type == 'observation'):
-          # clust_info = msg_data.split(',')[1].split(']')[0]
-          # print '\n' + str(clust_info.split[' '][0])
-          # print '\n' + str(clust_info)
-          print '\n' + msg_data.split(',')[1].split(']')[0]
+          clust_info = str(msg_data.split(',')[1].split(']')[0])
+          # print clust_info
+          sys.stdout.write(clust_info+'\n')
+          return clust_info
 
-        # print '\n' + datum
+  def run(self):
+    data = ''
+    while True:
+      try:
+        d = self.sock.recv(1024)
+      except Exception as e:
+        #self.logger.error('Could not receive data: %s'%e)
+        print 'Could not receive data'
+        break
+      else:
+        data += d
+        if not d:
+          break
+    #self.sockclose()
+    try:
+      parsed_clusters = self.handler(data)
+      logging.info('%s'%parsed_clusters)
+    except Exception as e:
+      #self.logger.error('Could not handle data: %s (%s)'%(data,e))
+      print 'Could not handle data'
 
-        # # print the phase changes
-        # if (msg_orig == 'Baum_Euclid') and (not msg_type == 'full_schedule'):
-        #   print '\n\n' + datum + '\n\n'
-        
-        # print the phase changes
-        # if (msg_orig == 'Baum_Euclid') and (not msg_type == 'full_schedule'):
-        #   print '\n\n' + datum + '\n\n'
-
-        # print the scheduler information
-        # elif msg_type == 'full_schedule':
-        #   if msg_data.split(':')[0] == '["current_full_schedule",SchData':
-        #     print 't=' + msg_time + msg_data.split(':')[1] + '\n'
-          # msg_data_all = msg_data.split(',')
-          # msg_label = str(msg_data_all[0])
-          # if msg_label == 'current_full_schedule':
-          #   print msg_data_all[1]
 
 class Listener(service.listener):
   def __init__(self, addr):
@@ -44,8 +49,9 @@ class Listener(service.listener):
     self.name = "online_traffic_learner"
     self.addr = addr
     self.client = Receiver
-    self.logger = logging.getLogger(self.name)
+    # self.logger = logging.getLogger(self.name)
 
 # myListener = Listener(('amh-lap.wv.cc.cmu.edu',33321))
+logging.basicConfig(filename='example.log',level=logging.INFO)
 myListener = Listener(('osprey.pc.cs.cmu.edu',33321))
 myListener.start()

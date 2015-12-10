@@ -5,7 +5,7 @@ from matplotlib import animation
 
 import online_svr
 
-def input_data(filename = 'OnlineSVR Matlab 2006b Code/test2.txt'):
+def input_data(filename = 'data_preparation/new_log.txt'):
     setX = list()
     setY = list()
     f = open(filename, 'r')
@@ -25,15 +25,17 @@ def init():
     return line1,line2,
 
 def animate(i):
-    timesteps = np.array(range(i))
+    global ydata
+    timesteps = np.array(range(i+1))
     ax.set_xlim(0,i)
-    PredictedY = OSVR.predict(testSetX[0:i,:])
-    line1.set_data(timesteps, PredictedY)
-    line2.set_data(timesteps, testSetY[0:i])
+    ydata.append(OSVR.predict(testSetX[i]).item(0))
+    line1.set_data(timesteps, np.array(ydata))
+    line2.set_data(timesteps, testSetY[0:i+1])
     OSVR.learn(testSetX[i,:], testSetY[i])
     return line1,line2,
 
 testSetX, testSetY = input_data()
+ydata = list()
 print(testSetY.max())
 # Set up animated figure
 fig = plt.figure()
