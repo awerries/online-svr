@@ -1,7 +1,7 @@
 load('traffic_data.mat')
 
 y1_avg = avg_arrival_rate(x1,y1);%preprocessing
-epsilon = 0.01;
+epsilon = 1;
 start = 312;
 sample_time = 30;%unit: second
 
@@ -36,7 +36,7 @@ for i = 1:online_size
     end
 end
 
-fileID = fopen('test2.txt','w');
+fileID = fopen('test3.txt','w');
 for i = 1:online_size
     g=sprintf('%f ', ActualX(i,:));
     formatSpec = '%f, %s\n';
