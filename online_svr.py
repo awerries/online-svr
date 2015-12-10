@@ -28,6 +28,7 @@ class OnlineSVR:
         self.bias = bias
         self.debug = debug
         
+        print('SELF',self.C,self.eps,self.kernelParam)
         # Algorithm initialization
         self.numSamplesTrained = 0
         self.weights = np.array([])
