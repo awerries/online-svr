@@ -69,7 +69,7 @@ plt.legend(loc='upper left')
 
 # Set up learner
 OSVR = online_svr.OnlineSVR(numFeatures = testSetX.shape[1], C = C, eps = eps, 
-                            kernelParam = kernelParam, bias = 2, debug = False)
+                            kernelParam = kernelParam, bias = 1, debug = False)
 # Run learner with animate() function
 anim = animation.FuncAnimation(fig,animate,init_func=init,interval=1,
                                frames=range(testSetX.shape[0]),repeat=False)
@@ -81,7 +81,8 @@ rmse = np.sqrt(np.mean((testSetY-np.array(ydata))**2))
 print('RMSE: {0}'.format(rmse))
 
 fig = plt.figure()
-plt.plot(iteration_times)
+plt.plot(iteration_times,'o')
 plt.xlabel('Iteration')
 plt.ylabel('Elapsed time')
+plt.title('C={0},eps={1},kernelParam={2}\n{3}'.format(C,eps,kernelParam,filename))
 plt.show()
