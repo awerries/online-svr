@@ -73,12 +73,14 @@ OSVR = online_svr.OnlineSVR(numFeatures = testSetX.shape[1], C = C, eps = eps,
 # Run learner with animate() function
 anim = animation.FuncAnimation(fig,animate,init_func=init,interval=1,
                                frames=range(testSetX.shape[0]),repeat=False)
+plt.show()
+
 print('\n\nC={0},eps={1},kernelParam={2}'.format(C,eps,kernelParam))
 print('Elapsed time: {0:.3f}'.format(time.time() - program_start_time))
 print('RMSE: {0}'.format(np.linalg.norm(testSetY-np.array(ydata)) / np.sqrt(testSetY.size)))
-plt.show()
+
 fig = plt.figure()
 plt.plot(iteration_times)
-plot.xlabel('Iteration')
-plot.ylabel('Elapsed time')
+plt.xlabel('Iteration')
+plt.ylabel('Elapsed time')
 plt.show()
