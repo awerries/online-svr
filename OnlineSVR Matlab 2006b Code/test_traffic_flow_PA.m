@@ -36,7 +36,7 @@ for i = 1:online_size
     end
 end
 
-fileID = fopen('test3.txt','w');
+fileID = fopen('new_log.txt','w');
 for i = 1:online_size
     g=sprintf('%f ', ActualX(i,:));
     formatSpec = '%f, %s\n';
