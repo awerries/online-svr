@@ -77,7 +77,8 @@ plt.show()
 
 print('\n\nC={0},eps={1},kernelParam={2}'.format(C,eps,kernelParam))
 print('Elapsed time: {0:.3f}'.format(time.time() - program_start_time))
-print('RMSE: {0}'.format(np.linalg.norm(testSetY-np.array(ydata)) / np.sqrt(testSetY.size)))
+rmse = np.sqrt(np.mean((testSetY-np.array(ydata))**2))
+print('RMSE: {0}'.format(rmse))
 
 fig = plt.figure()
 plt.plot(iteration_times)
