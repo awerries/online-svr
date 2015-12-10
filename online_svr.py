@@ -347,13 +347,6 @@ class OnlineSVR:
         # Correct for NaN
         beta[np.isnan(beta)] = 0
         gamma[np.isnan(gamma)] = 0
-        # if beta.size>1:
-            # # beta = np.array([val if not np.isnan(val) else 0 for val in beta])
-            # beta.shape = (len(beta),1)
-        # if gamma.size>1:
-            # # gamma = np.array([val if not np.isnan(val) else 0 for val in gamma])
-            # print(gamma)
-            # gamma.shape = (len(gamma),1)
         if self.debug:
             print('R',self.R)
             print('beta',beta)
@@ -541,10 +534,11 @@ class OnlineSVR:
 def main(argv):
     # Test of Online SVR algorithm
     debug = True if len(argv)>1 and argv[1] == 'debug' else False
-    OSVR = OnlineSVR(numFeatures = 2, C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = debug)
     #testSetX = np.array([[0.1],[0.2],[0.3],[0.4],[0.5]])
     testSetX = np.random.rand(10,2)
     testSetY = np.sin(2*np.pi*testSetX[:,0] + testSetX[:,1])
+    OSVR = OnlineSVR(numFeatures = testSetX.shape[1], C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = debug)
+
     for i in range(testSetX.shape[0]):
         print('%%%%%%%%%%%%%%% Data point {0} %%%%%%%%%%%%%%%'.format(i))
         OSVR.learn(testSetX[i,:], testSetY[i])

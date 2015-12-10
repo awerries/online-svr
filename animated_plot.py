@@ -24,9 +24,10 @@ def animate(i):
     line2.set_data(testSetX[0:i,0], testSetY[0:i])
     return line1,line2,
 
-OSVR = online_svr.OnlineSVR(numFeatures = 2, C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = False)
+
 #testSetX = np.array([[0.1],[0.2],[0.3],[0.4],[0.5]])
 testSetX = np.random.rand(100,2)
 testSetY = np.sin(2*np.pi*testSetX[:,0] + testSetX[:,1])
+OSVR = online_svr.OnlineSVR(numFeatures = testSetX.shape[1], C = 10, eps = 0.1, kernelParam = 30, bias = 0, debug = False)
 anim = animation.FuncAnimation(fig,animate,init_func=init,interval=1,frames=range(testSetX.shape[0]),repeat=False)
 plt.show()
