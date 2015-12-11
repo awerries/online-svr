@@ -61,8 +61,8 @@ def main():
 
 	log_name = "./centre_graham_cluster_log.txt"
 	input_file = open(log_name,'r')
-	file_0 = open('phase0_10d.txt','w')
-	file_1 = open('phase1_10d.txt','w')
+	file_0 = open('phase0_10D.txt','w')
+	file_1 = open('phase1_10D.txt','w')
 	output_file =[file_0, file_1]
 	
 	
@@ -98,9 +98,6 @@ def main():
 						label = arrival_rate(feature[-predict_horizon:])
 						if q_feature.qsize() == predict_horizon:
 							previous_feature = q_feature.get()
-							#print "label ", label[0]
-							#print "previous_feature ", previous_feature[:,0].tolist()
-							#print "current_feature ", feature[:,0].tolist()
 							for pi, phase in enumerate(all_phases):
 								output_file[pi].write(str(fake_msg_time)+": "+str(feature[:,pi].tolist())[1:-1]+": "+str(label[pi])+": "+str(previous_feature[:,pi].tolist())[1:-1]+"\n")
 						q_feature.put(feature)
@@ -126,9 +123,6 @@ def main():
 				label = arrival_rate(feature[-predict_horizon:])
 				if q_feature.qsize() == predict_horizon:
 					previous_feature = q_feature.get()
-					#print "label ", label[0]
-					#print "previous_feature ", previous_feature[:,0].tolist()
-					#print "current_feature ", feature[:,0].tolist()
 					for pi, phase in enumerate(all_phases):
 						output_file[pi].write(str(new_msg_rcv_time)+": "+str(feature[:,pi].tolist())[1:-1]+": "+str(label[pi])+": "+str(previous_feature[:,pi].tolist())[1:-1]+"\n")
 				q_feature.put(feature)
