@@ -59,8 +59,11 @@ def main():
 	q_feature = Queue()
 	q_smooth = Queue()
 
-	log_name = "../input_log.txt"
+	log_name = "./centre_graham_cluster_log.txt"
 	input_file = open(log_name,'r')
+	file_0 = open('phase0_10d.txt','w')
+	file_1 = open('phase1_10d.txt','w')
+	output_file =[file_0, file_1]
 	
 	
 	new_msg_rcv_time = 0
@@ -70,10 +73,10 @@ def main():
 
 	samples = list()
 	all_phases = ['0','1']
-	sample_rate = 1#how many seconds constitue a sample
-	window_arrival = 4#1*60 / sample_rate
-	predict_horizon = 2#window should be greater than horizon
-	smooth_period = 10
+	sample_rate = 30#how many seconds constitue a sample
+	window_arrival = 10#1*60 / sample_rate
+	predict_horizon = 5#window should be greater than horizon
+	smooth_period = 60
 
 	for temp_line in input_file:
 
@@ -87,7 +90,7 @@ def main():
 				fake_msg_time += dt*scale
 				fake_msg = str(fake_msg_time)
 
-
+				#print fake_msg
 				#doLearning(line, q_sample, q_feature, q_smooth, samples)
 				if len(samples) == sample_rate:
 					if q_sample.qsize() == window_arrival:
@@ -95,9 +98,11 @@ def main():
 						label = arrival_rate(feature[-predict_horizon:])
 						if q_feature.qsize() == predict_horizon:
 							previous_feature = q_feature.get()
-							print "label ", label[0]
-							print "previous_feature ", previous_feature[:,0].tolist()
-							print "current_feature ", feature[:,0].tolist()
+							#print "label ", label[0]
+							#print "previous_feature ", previous_feature[:,0].tolist()
+							#print "current_feature ", feature[:,0].tolist()
+							for pi, phase in enumerate(all_phases):
+								output_file[pi].write(str(fake_msg_time)+": "+str(feature[:,pi].tolist())[1:-1]+": "+str(label[pi])+": "+str(previous_feature[:,pi].tolist())[1:-1]+"\n")
 						q_feature.put(feature)
 						q_sample.get()
 					q_sample.put(arrival_rate(samples))
@@ -114,15 +119,18 @@ def main():
 			continue
 
 		#doLearning(line, q_sample, q_feature, q_smooth, samples)
+		#print line
 		if len(samples) == sample_rate:
 			if q_sample.qsize() == window_arrival:
 				feature = np.array(q_sample.queue)
 				label = arrival_rate(feature[-predict_horizon:])
 				if q_feature.qsize() == predict_horizon:
 					previous_feature = q_feature.get()
-					print "label ", label[0]
-					print "previous_feature ", previous_feature[:,0].tolist()
-					print "current_feature ", feature[:,0].tolist()
+					#print "label ", label[0]
+					#print "previous_feature ", previous_feature[:,0].tolist()
+					#print "current_feature ", feature[:,0].tolist()
+					for pi, phase in enumerate(all_phases):
+						output_file[pi].write(str(new_msg_rcv_time)+": "+str(feature[:,pi].tolist())[1:-1]+": "+str(label[pi])+": "+str(previous_feature[:,pi].tolist())[1:-1]+"\n")
 				q_feature.put(feature)
 				q_sample.get()
 			q_sample.put(arrival_rate(samples))
@@ -133,6 +141,7 @@ def main():
 		q_smooth.put(parse_line(line, all_phases))
 		data = arrival_rate(list(q_smooth.queue))
 		samples.append(data)
+		
 		prev_msg_rcv_time = new_msg_rcv_time
 		
 if __name__ == '__main__':
