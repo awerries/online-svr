@@ -74,9 +74,11 @@ OSVR = online_svr.OnlineSVR(numFeatures = testSetX.shape[1], C = C, eps = eps,
 anim = animation.FuncAnimation(fig,animate,init_func=init,interval=1,
                                frames=range(testSetX.shape[0]),repeat=False)
 plt.show()
-
+plt.savefig('prediction_plot.png')
 print('\n\nC={0},eps={1},kernelParam={2}'.format(C,eps,kernelParam))
-print('Elapsed time: {0:.3f}'.format(time.time() - program_start_time))
+iteration_times = np.array(iteration_times)
+print('Elapsed time: {0:.3f}'.format(np.sum(iteration_times)))
+print('Mean iteration time: {0:.3f}'.format(np.mean(iteration_times)))
 rmse = np.sqrt(np.mean((testSetY-np.array(ydata))**2))
 print('RMSE: {0}'.format(rmse))
 
@@ -86,3 +88,4 @@ plt.xlabel('Iteration')
 plt.ylabel('Elapsed time')
 plt.title('C={0},eps={1},kernelParam={2}\n{3}'.format(C,eps,kernelParam,filename))
 plt.show()
+plt.savefig('time_plot.png')
