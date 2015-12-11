@@ -23,49 +23,61 @@ def main():
 	q_sample = Queue()
 	q_feature = Queue()
 	q_smooth = Queue()
+	samples = list()
 
-	log_name = "../input_log.txt"
-	input_file = open(log_name,'r')
-	all_phases = ['0','1']
+	# log_name = "../input_log.txt"
+	# input_file = open(log_name,'r')
 	
 	new_msg_rcv_time = 0
 	prev_msg_rcv_time = 0
 	scale = 1000
 	dt = 1
 
-	sample_rate = 1#how many seconds constitue a sample
-	samples = list()
-	window_arrival = 4#1*60 / sample_rate
-	predict_horizon = 2#window should be greater than horizon
-	smooth_period = 10
+	
+	
+	
 
-	for line in input_file:
-	#while True:
-	#	line = sys.stdin.readline()
-
-
+	# for line in input_file:
+	while True:
+		line = sys.stdin.readline().strip('\n')
+		
 		#make sure that time is continuous
-		new_msg_rcv_time = int(str(line).split(' ')[0])
+		info = str(line).split(' ')
+		print info
+		
+		new_msg_rcv_time = int(info[0])
+        print str(info[0])
+
         time_diff = new_msg_rcv_time-prev_msg_rcv_time
-		if  time_diff/scale > dt:
+        print str(new_msg_rcv_time)
+        print str(prev_msg_rcv_time)
+        print "yayayya"
+        if  time_diff/scale > dt:
+	        #print out a string of time for each missing step
+	        fake_msg_time = prev_msg_rcv_time
+	        for i in range(time_diff/scale - 1):
+	        	fake_msg_time += self.dt*scale
+	        	fake_msg = str(fake_msg_time)
 
-			#print out a string of time for each missing step
-			fake_msg_time = prev_msg_rcv_time
-			for i in range(time_diff/scale - 1):
-				fake_msg_time += self.dt*scale
-				fake_msg = str(fake_msg_time)
+	        	#Call Hsu-Chieh's function for the missed (time) messages
+	        	print fake_msg
+	        	doLearning(fake_msg, q_sample, q_feature, q_smooth, samples)
 
-				#Call Hsu-Chieh's function for the missed (time) messages
-				doLearning(fake_msg)
-
-		#Call Hsu-Chieh's function for the current (time) message
-		doLearning(line)
+    	#Call Hsu-Chieh's function for the current (time) message
+		print line
+		doLearning(line, q_sample, q_feature, q_smooth, samples)
 
 		#update the time tick
 		prev_msg_rcv_time = new_msg_rcv_time
 
 
-def doLearning(line):
+def doLearning(line, q_sample, q_feature, q_smooth, samples):
+	all_phases = ['0','1']
+	sample_rate = 1#how many seconds constitue a sample
+	window_arrival = 4#1*60 / sample_rate
+	predict_horizon = 2#window should be greater than horizon
+	smooth_period = 10
+
 	if len(samples) == sample_rate:
 		if q_sample.qsize() == window_arrival:
 			feature = np.array(q_sample.queue)
