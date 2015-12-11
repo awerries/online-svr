@@ -1,6 +1,7 @@
 from Queue import Queue
 import numpy as np
 import sys
+import copy
 
 
 def parse_line(line, all_phases):
@@ -19,64 +20,26 @@ def parse_line(line, all_phases):
 def arrival_rate(samples):
 	return np.mean(samples,0)
 
-def main():
-	q_sample = Queue()
-	q_feature = Queue()
-	q_smooth = Queue()
 
-	log_name = "../input_log.txt"
-	input_file = open(log_name,'r')
+'''def doLearning(line, q_sample, q_feature, q_smooth, samples):
 	all_phases = ['0','1']
-	
-	new_msg_rcv_time = 0
-	prev_msg_rcv_time = 0
-	scale = 1000
-	dt = 1
-
 	sample_rate = 1#how many seconds constitue a sample
-	samples = list()
 	window_arrival = 4#1*60 / sample_rate
 	predict_horizon = 2#window should be greater than horizon
 	smooth_period = 10
 
-	for line in input_file:
-	#while True:
-	#	line = sys.stdin.readline()
 
-
-		#make sure that time is continuous
-		new_msg_rcv_time = int(str(line).split(' ')[0])
-        time_diff = new_msg_rcv_time-prev_msg_rcv_time
-		if  time_diff/scale > dt:
-
-			#print out a string of time for each missing step
-			fake_msg_time = prev_msg_rcv_time
-			for i in range(time_diff/scale - 1):
-				fake_msg_time += self.dt*scale
-				fake_msg = str(fake_msg_time)
-
-				#Call Hsu-Chieh's function for the missed (time) messages
-				doLearning(fake_msg)
-
-		#Call Hsu-Chieh's function for the current (time) message
-		doLearning(line)
-
-		#update the time tick
-		prev_msg_rcv_time = new_msg_rcv_time
-
-
-def doLearning(line):
 	if len(samples) == sample_rate:
 		if q_sample.qsize() == window_arrival:
 			feature = np.array(q_sample.queue)
 			label = arrival_rate(feature[-predict_horizon:])
 			if q_feature.qsize() == predict_horizon:
 				previous_feature = q_feature.get()
-				print "label ", label[0]
-				print "previous_feature ", previous_feature[:,0].tolist()
-				print "current_feature ", feature[:,0].tolist()
-				'''for pi, phase in enumerate(all_phases):
-					Adam_function(label[pi],previous_feature[:,pi].tolist(), feature[:,pi].tolist())'''
+				#print "label ", label[0]
+				#print "previous_feature ", previous_feature[:,0].tolist()
+				#print "current_feature ", feature[:,0].tolist()
+				for pi, phase in enumerate(all_phases):
+					Adam_function(label[pi],previous_feature[:,pi].tolist(), feature[:,pi].tolist())
 			q_feature.put(feature)
 			q_sample.get()
 
@@ -88,9 +51,90 @@ def doLearning(line):
 	q_smooth.put(parse_line(line, all_phases))
 	data = arrival_rate(list(q_smooth.queue))
 
-	samples.append(data)
-		
+	samples.append(data)'''
 
+	
+def main():
+	q_sample = Queue()
+	q_feature = Queue()
+	q_smooth = Queue()
+
+	log_name = "../input_log.txt"
+	input_file = open(log_name,'r')
+	
+	
+	new_msg_rcv_time = 0
+	prev_msg_rcv_time = 0
+	scale = 1000
+	dt = 1
+
+	samples = list()
+	all_phases = ['0','1']
+	sample_rate = 1#how many seconds constitue a sample
+	window_arrival = 4#1*60 / sample_rate
+	predict_horizon = 2#window should be greater than horizon
+	smooth_period = 10
+
+	for temp_line in input_file:
+
+		line = temp_line[0:-1]
+
+		new_msg_rcv_time = int(line.split()[0])
+		time_diff = new_msg_rcv_time - prev_msg_rcv_time
+		if  time_diff/scale > dt:
+			fake_msg_time = prev_msg_rcv_time
+			for i in range(time_diff/scale - 1):
+				fake_msg_time += dt*scale
+				fake_msg = str(fake_msg_time)
+
+
+				#doLearning(line, q_sample, q_feature, q_smooth, samples)
+				if len(samples) == sample_rate:
+					if q_sample.qsize() == window_arrival:
+						feature = np.array(q_sample.queue)
+						label = arrival_rate(feature[-predict_horizon:])
+						if q_feature.qsize() == predict_horizon:
+							previous_feature = q_feature.get()
+							print "label ", label[0]
+							print "previous_feature ", previous_feature[:,0].tolist()
+							print "current_feature ", feature[:,0].tolist()
+						q_feature.put(feature)
+						q_sample.get()
+					q_sample.put(arrival_rate(samples))
+					samples = list()
+				if q_smooth.qsize() == smooth_period:
+					q_smooth.get()
+				q_smooth.put(parse_line(fake_msg, all_phases))
+				data = arrival_rate(list(q_smooth.queue))
+
+				samples.append(data)
+
+
+		elif time_diff == 0:
+			continue
+
+		#doLearning(line, q_sample, q_feature, q_smooth, samples)
+		if len(samples) == sample_rate:
+			if q_sample.qsize() == window_arrival:
+				feature = np.array(q_sample.queue)
+				label = arrival_rate(feature[-predict_horizon:])
+				if q_feature.qsize() == predict_horizon:
+					previous_feature = q_feature.get()
+					print "label ", label[0]
+					print "previous_feature ", previous_feature[:,0].tolist()
+					print "current_feature ", feature[:,0].tolist()
+				q_feature.put(feature)
+				q_sample.get()
+			q_sample.put(arrival_rate(samples))
+			samples = list()
+
+		if q_smooth.qsize() == smooth_period:
+			q_smooth.get()
+		q_smooth.put(parse_line(line, all_phases))
+		data = arrival_rate(list(q_smooth.queue))
+		samples.append(data)
+		prev_msg_rcv_time = new_msg_rcv_time
+		
 if __name__ == '__main__':
     main()
 	
