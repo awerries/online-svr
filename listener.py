@@ -2,6 +2,9 @@ import service
 import logging
 import sys
 
+# last_timestep = 0
+# dt = 1000
+
 class Receiver(service.receiver):
 
   def handler(self,msg):
@@ -17,7 +20,8 @@ class Receiver(service.receiver):
         #check for relevant observations to send to the learner
         if (msg_type == 'observation'):
           clust_info = str(msg_data.split(',')[1].split(']')[0])
-          # print clust_info
+
+          #write the cluster information
           sys.stdout.write(clust_info+'\n')
           return clust_info
 
