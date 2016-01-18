@@ -61,7 +61,7 @@ ydata = list()
 C = float(sys.argv[1])
 eps = float(sys.argv[2])
 kernelParam = float(sys.argv[3])
-filename = 'phase1_10D'
+filename = str(sys.argv[4])
 
 # Load data
 times, testSetX, testSetY, testSetXp = input_data(filename + '.txt')
