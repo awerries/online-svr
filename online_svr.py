@@ -1,12 +1,14 @@
-#!/usr/bin/env python
-"""Implementation of Online Support Vector Regression (OSVR) for a class project in 16-831 
+#!/usr/bin/env python3
+"""Implementation of Online Support Vector Regression (OSVR) as library for a class project in 16-831 
 Statistical Techniques in Robotics.
+
+Requires Python 3.5
 
 Author: Adam Werries, awerries@cmu.edu, 12/2015.
 Adapted from MATLAB code available at http://onlinesvr.altervista.org/
 
-Assumes a Radial Basis Function as a kernel. Note that this code utilizes the new '@' operator introduced 
-in Python 3.5 for matrix multiplication."""
+Parameters defined in main() below. C is the regularization parameter, essentially defining the limit on how close the learner must adhere to the dataset (smoothness). Epsilon is the acceptable error, and defines the width of what is sometimes called the "SVR tube". The kernel parameter is the scaling factor for comparing feature distance (this implementation uses a Radial Basis Function). 
+"""
 
 import sys
 import numpy as np
@@ -43,7 +45,7 @@ class OnlineSVR:
         self.R = np.matrix([])
 
     def findMinVariation(self, H, beta, gamma, i):
-        """ Finds the variations of each sample to the new set
+        """ Finds the variations of each sample to the new set.
         Lc1: distance of the new sample to the SupportSet
         Lc2: distance of the new sample to the ErrorSet
         Ls(i): distance of the support samples to the ErrorSet/RemainingSet

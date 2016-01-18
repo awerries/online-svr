@@ -1,3 +1,13 @@
+"""
+Animated demo using traffic prediction data for Online SVR. 2 features generated at 100 random samples, sent through a sine function, and used to predict and learn. 
+
+Usage:
+    python3 traffic_prediction.py <C> <epsilon> <kernel parameter> <log filename>
+
+C is the regularizatin parameter, essentially defining the limit on how close the learner must adhere to the dataset (smoothness). Epsilon is the acceptable error, and defines the width of what is sometimes called the "SVR tube". The kernel parameter is the scaling factor for comparing feature distance (this implementation uses a Radial Basis Function). 
+
+Author: Adam Werries, awerries@cmu.edu
+"""
 import sys
 import time
 import numpy as np

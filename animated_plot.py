@@ -1,3 +1,8 @@
+"""
+Simple animated demo for Online SVR. 2 features generated at 100 random samples, sent through a sine function, and used to predict and learn.
+
+Author: Adam Werries, awerries@cmu.edu
+"""
 import sys
 import numpy as np
 from matplotlib import pyplot as plt
