@@ -430,7 +430,7 @@ class OnlineSVR:
         print('Adding sample {0} to R matrix.'.format(sampleIndex))
         X = np.array(self.X)
         sampleX = X[sampleIndex,:]
-        sampleX.shape = (sampleX.size/self.numFeatures,self.numFeatures)
+        sampleX.shape = (sampleX.size//self.numFeatures,self.numFeatures)
         # Add first element
         if self.R.shape[0] <= 1:
             Rnew = np.ones([2,2])
